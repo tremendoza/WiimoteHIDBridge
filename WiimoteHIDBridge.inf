@@ -1,0 +1,71 @@
+;
+; WiimoteHidBridge.inf
+;
+; Installation file for the Wiimote HID Bridge KMDF driver stack.
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=HIDClass
+ClassGuid={745a17a0-74d3-11d0-b6fe-00a0c90f57da}
+Provider=%ManufacturerName%
+CatalogFile=WiimoteHidBridge.cat
+DriverVer=07/23/2026,1.0.0.0
+PnpLockDown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+WiimoteHidBridge_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+WiimoteHidBridge.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll = 1
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+; Explicitly mapping to the Hardware IDs to intercept the Bluetooth enumerator
+%DeviceDesc%=WiimoteHidBridge_Device, BTHENUM\Dev_VID&0001057e_PID&0306
+%DeviceDesc%=WiimoteHidBridge_Device, BTHENUM\Dev_VID&0001057e_PID&0330
+%DeviceDesc%=WiimoteHidBridge_Device, BTHENUM\Dev_0017AB045A90
+%DeviceDesc%=WiimoteHidBridge_Device, BTHENUM\Dev_0017AB1AC0C5
+
+[WiimoteHidBridge_Device.NT]
+CopyFiles=WiimoteHidBridge_Device_CopyFiles
+
+[WiimoteHidBridge_Device_CopyFiles]
+WiimoteHidBridge.sys
+
+[WiimoteHidBridge_Device.NT.HW]
+AddReg=WiimoteHidBridge_Device_HW_AddReg
+
+[WiimoteHidBridge_Device_HW_AddReg]
+; Registers the driver below the standard HID stack
+HKR,,"LowerFilters",0x00010008,"WiimoteHidBridge"
+
+[WiimoteHidBridge_Device.NT.Services]
+AddService = WiimoteHidBridge, 0x00000002, WiimoteHidBridge_Service_Inst
+
+[WiimoteHidBridge_Service_Inst]
+DisplayName    = %ServiceName%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\WiimoteHidBridge.sys
+LoadOrderGroup = Extended Base
+
+[WiimoteHidBridge_Device.NT.Wdf]
+KmdfService = WiimoteHidBridge, WiimoteHidBridge_wdfsect
+
+[WiimoteHidBridge_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+ManufacturerName="Custom Wiimote Project"
+DiskName="Wiimote HID Bridge Installation Disk"
+DeviceDesc="Wiimote HID Bridge Device"
+ServiceName="Wiimote HID Bridge Service"
